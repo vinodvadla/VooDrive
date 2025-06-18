@@ -55,7 +55,7 @@ npm run dev
 🧩 Project Structure
 pgsql
 Copy
-Edit
+Edit~
 .
 ├── controllers
 │   └── authController.js
