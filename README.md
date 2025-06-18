@@ -19,19 +19,20 @@ A secure, scalable, and flexible file management and sharing system inspired by 
 
 ## 🛠️ Tech Stack
 
-| Layer       | Technology                    |
-|-------------|-------------------------------|
-| Frontend    | React / Next.js (optional)    |
-| Backend     | Node.js, Express.js           |
-| Auth        | JWT, bcrypt, Passport.js      |
-| DB          | PostgreSQL or MySQL + Sequelize |
-| File Storage| AWS S3 / Cloudinary / Local FS |
+| Layer        | Technology                      |
+| ------------ | ------------------------------- |
+| Frontend     | React / Next.js (optional)      |
+| Backend      | Node.js, Express.js             |
+| Auth         | JWT, bcrypt, Passport.js        |
+| DB           | PostgreSQL or MySQL + Sequelize |
+| File Storage | AWS S3 / Cloudinary / Local FS  |
 
 ---
 
 ## 📦 Installation
 
 ```bash
+
 git clone https://github.com/your-username/driveclone-backend.git
 cd driveclone-backend
 npm install
@@ -122,3 +123,4 @@ MIT © 2025 Vinod Vadla
 
 🤝 Contributing
 Pull requests and stars are welcome! For major changes, please open an issue first.
+```

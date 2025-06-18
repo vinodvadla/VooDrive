@@ -80,7 +80,10 @@ const login = async (req, res, next) => {
       return response.unauthorized(res, "Invalid credentials");
     }
 
-    const isPasswordValid = await bcrypt.comparePassword(password, user.password);
+    const isPasswordValid = await bcrypt.comparePassword(
+      password,
+      user.password
+    );
     if (!isPasswordValid) {
       return response.unauthorized(res, "Invalid credentials");
     }
@@ -124,46 +127,24 @@ const login = async (req, res, next) => {
   }
 };
 
-/**
- * Logout user
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next middleware function
- */
 const logout = async (req, res, next) => {
   try {
     const userId = req.user.id;
-
-    // Clear refresh token from database
-    await User.update(
-      { refreshToken: null },
-      { where: { id: userId } }
-    );
-
-    // Clear cookies
+    await User.update({ refreshToken: null }, { where: { id: userId } });
     res.clearCookie("accessToken");
     res.clearCookie("refreshToken");
-
     return response.success(res, "Logout successful");
   } catch (error) {
     next(error);
   }
 };
 
-/**
- * Refresh access token
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next middleware function
- */
 const refreshToken = async (req, res, next) => {
   try {
     const { refreshToken } = req.cookies;
-
     if (!refreshToken) {
       return response.unauthorized(res, "Refresh token is required");
     }
-
     const decoded = jwt.verifyToken(refreshToken);
     if (!decoded) {
       return response.unauthorized(res, "Invalid refresh token");
@@ -180,18 +161,16 @@ const refreshToken = async (req, res, next) => {
       return response.unauthorized(res, "Invalid refresh token");
     }
 
-    // Generate new access token
     const accessToken = jwt.generateToken({
       id: user.id,
       email: user.email,
     });
 
-    // Set new access token cookie
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     return response.success(res, "Token refreshed successfully");
@@ -200,12 +179,6 @@ const refreshToken = async (req, res, next) => {
   }
 };
 
-/**
- * Request password reset
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next middleware function
- */
 const requestPasswordReset = async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -216,34 +189,26 @@ const requestPasswordReset = async (req, res, next) => {
 
     const user = await User.findOne({ where: { email } });
     if (!user) {
-      // Return success even if user doesn't exist for security
-      return response.success(res, "If an account exists, a password reset email will be sent");
+      return response.success(
+        res,
+        "If an account exists, a password reset email will be sent"
+      );
     }
 
-    // Generate password reset token
-    const resetToken = jwt.generateToken(
-      { id: user.id },
-      { expiresIn: "1h" }
-    );
-
-    // Update user with reset token
-    await user.update({ resetToken });
+    const resetToken = jwt.generateToken({ id: user.id }, { expiresIn: "1h" });
 
     // TODO: Send password reset email with resetToken
     // This would typically involve sending an email with a link containing the reset token
 
-    return response.success(res, "If an account exists, a password reset email will be sent");
+    return response.success(
+      res,
+      "If an account exists, a password reset email will be sent"
+    );
   } catch (error) {
     next(error);
   }
 };
 
-/**
- * Reset password
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next middleware function
- */
 const resetPassword = async (req, res, next) => {
   try {
     const { token, newPassword } = req.body;
@@ -253,7 +218,10 @@ const resetPassword = async (req, res, next) => {
     }
 
     if (newPassword.length < 8) {
-      return response.badRequest(res, "Password must be at least 8 characters long");
+      return response.badRequest(
+        res,
+        "Password must be at least 8 characters long"
+      );
     }
 
     const decoded = jwt.verifyToken(token);
@@ -287,6 +255,36 @@ const resetPassword = async (req, res, next) => {
   }
 };
 
+const getUserByToken = async (req, res, next) => {
+  try {
+    const { accessToken } = req.cookies;
+
+    if (!accessToken) {
+      return response.unauthorized(res, "Access token is required");
+    }
+
+    const decoded = jwt.verifyToken(accessToken);
+    if (!decoded) {
+      return response.unauthorized(res, "Invalid access token");
+    }
+
+    const user = await User.findOne({
+      where: { id: decoded.id },
+      attributes: ["id", "email", "name", "phone", "createdAt"],
+    });
+    if (!user) {
+      return response.unauthorized(res, "User not found");
+    }
+    return response.success(
+      res,
+      "User information retrieved successfully",
+      user
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -294,4 +292,5 @@ module.exports = {
   refreshToken,
   requestPasswordReset,
   resetPassword,
+  getUserByToken,
 };
